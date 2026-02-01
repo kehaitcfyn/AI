@@ -1,0 +1,44 @@
+#### Køres fra Consol
+
+docker exec "dockernavn" python -c "
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+
+db = Chroma(
+    persist_directory='/app/chroma_collections/gdpr_advisor',
+    embedding_function=OpenAIEmbeddings(),
+    collection_name='gdpr_advisor'
+)
+results = db.get(limit=1, include=['metadatas'])
+for key, value in results['metadatas'][0].items():
+    print(f'{key}: {value}')
+"
+
+
+
+##### Output
+
+keywords: brud,persondatasikkerheden,tilfælde,notat,dajo
+page: 1
+avg_word_length: 5.966666666666667
+chunk_length: 429
+sourceUrl: https://server.dk/files/Eks. på procedurebeskrivelse for brud på persondatasikkerheden.pdf
+chunk_number: 1
+file_type: pdf
+file_modified_at: 2026-01-21T11:41:52
+has_numbers: True
+file_extension: .pdf
+file_size: 198929
+ingested_at: 2026-01-29T14:16:50.970886
+preview: [Side 1]
+source: Eks. på procedurebeskrivelse for brud på persondatasikkerheden.pdf
+position: start
+is_complete_sentence: False
+chunk_index: 0
+document: Eks. på procedurebeskrivelse for brud på persondatasikkerheden.pdf
+sha256: 33e1f1111cd2296c3920e236d1ceec7f523cd36c2f8c5e7a6bdee83d20b5509d
+collection: gdpr_advisor
+document_id: Eks_ på procedurebeskrivelse for brud på persondatasikkerheden_pdf
+word_count: 60
+total_pages: 12
+total_chunks: 52

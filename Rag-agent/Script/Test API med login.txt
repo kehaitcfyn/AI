@@ -1,0 +1,31 @@
+$login = Invoke-RestMethod -Uri "https://xxxxxxx/api/auth/login" -Method POST -ContentType "application/x-www-form-urlencoded" -Body "username=xxxx&password=xxxxxx"
+$headers = @{ "Authorization" = "Bearer $($login.access_token)" }
+$response = Invoke-RestMethod -Uri "https://xxxxxxx/api/chat" -Method POST -ContentType "application/json" -Headers $headers -Body '{"message":"test","prompt_key":"1"}'
+$response.sources_metadata
+
+
+
+####  OUTPUT
+
+rank            : 1
+collection      : it_servicedesk
+document        : support-it-2026.pdf
+page            : 1
+sourceUrl       : https://server.dk/files/support-it-2026.pdf
+relevance_score : 0,5091
+chunk_preview   : [Side 1]
+                  Almindelige IT-problemer og lÃ¸sninger for IT-supportere  
+                  1. Computer starter ikke 
+                  Fejl: Computeren reagerer slet ikke nÃ¥r der trykkes pÃ¥ tÃ¦...
+
+rank            : 2
+collection      : it_servicedesk
+document        : support-it-2026.pdf
+page            : 3
+sourceUrl       : https://server.dk/files/support-it-2026.pdf
+relevance_score : 0,5091
+chunk_preview   : [Side 3]
+                  â¢ Scan harddisken med CHKDSK  
+                  â¢ Opdater Windows og alle drivere  
+                  â¢ Tjek for overheding  
+                  â¢ Afinstaller nyligt installeret software  

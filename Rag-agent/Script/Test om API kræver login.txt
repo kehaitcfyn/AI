@@ -1,0 +1,25 @@
+$headers = @{ "Authorization" = "Bearer $($login.access_token)" }
+# Chat request
+$response = Invoke-RestMethod -Uri "https://xxxxxxxx/api/chat" -Method POST -ContentType "application/json" -Headers $headers -Body '{"message":"Hej, hvad kan du hjaelpe med?","prompt_key":"1"}'
+
+
+####forventet Output
+# Chat request
+$headers = @{ "Authorization" = "Bearer $($login.access_token)" }
+# Chat request
+$response = Invoke-RestMethod -Uri "https://xxxxxxxx/api/chat" -Method POST -ContentType "application/json" -Headers $headers -Body '{"message":"Hej, hvad kan du hjaelpe med?","prompt_key":"1"}'
+Invoke-RestMethod : {"detail":"Authentication påkrævet"}
+
+
+********************************************************************************************************************************************************************************************************************
+# Hent alle prompts
+$prompts = Invoke-RestMethod -Uri "https://xxxxxxxx/api/prompts" -Method GET -Headers $headers
+$prompts.prompts
+
+
+####forventet Output
+# Hent alle prompts
+$prompts = Invoke-RestMethod -Uri "https://xxxxxxxx/api/prompts" -Method GET -Headers $headers
+$prompts.prompts
+Invoke-RestMethod : {"detail":"Ikke autentificeret"}
+

@@ -1,0 +1,97 @@
+version: '3.8'
+###   cap_drop:- ALL  				= containeren har (næsten) ingen capabilitie
+###   security_opt: - no-new-privileges:true    = processer inde i containeren må ikke få flere privilegier end de allerede har.
+###   cap_add: - NET_BIND_SERVICE 		= At lytte på privilegerede porte (<1024) kræver capability NET_BIND_SERVICE
+###                                               ellers risikerer du at 80/443/80 ikke kan bindes.
+###   cap_add: -NET_RAW                         = raw sockets (fx ping, traceroute). Sjældent nødvendigt.
+
+services:
+  # ----------------------------------------------------------
+  # NGINX Proxy Manager (gateway)
+  # ----------------------------------------------------------
+  nginx-proxy:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"      # HTTP
+      - "81:81"      # Admin UI
+      - "443:443"    # HTTPS
+    volumes:
+      - ./nginx-data:/data
+      - ./nginx-certs:/etc/letsencrypt
+      - ./nginx-config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    env_file:
+      - .env
+    networks:
+      - webnet
+      - appnet
+    security_opt:
+      - no-new-privileges:true
+
+  # ----------------------------------------------------------
+  # HTTPD (frontend webserver)
+  # ----------------------------------------------------------
+  httpd:
+    image: httpd:2.4
+    container_name: httpd
+    restart: unless-stopped
+    volumes:
+      # Frontend files
+      - ./App/frontend:/usr/local/apache2/htdocs:ro
+     #  - ./App/frontend/templates:/usr/local/apache2/htdocs:ro
+     #  - ./App/frontend/static:/usr/local/apache2/htdocs/static:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    networks:
+      - webnet
+      - appnet
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true 
+    expose:
+      - "80"
+
+  # ----------------------------------------------------------
+  # FASTAPI Backend (API server)
+  # ----------------------------------------------------------
+  fastapi-chat:
+    build: .
+    container_name: ai-chat-api
+    volumes:
+      # Backend code (for development hot-reload)
+      - ./App/backend:/app/backend:rw
+      # Data directories
+      - ./prompts:/app/prompts:rw
+      - ./chroma_collections:/app/chroma_collections:rw
+      # User data (JWT users, etc.)
+      - ./data:/app/data:rw
+      # Logs (audit logging)
+      - ./logs:/app/logs:rw
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    networks:
+      - appnet
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    expose:
+      - "8000"
+
+# ----------------------------------------------------------
+# Networks
+# ----------------------------------------------------------
+networks:
+  webnet:
+    driver: bridge
+  appnet:
+    driver: bridge

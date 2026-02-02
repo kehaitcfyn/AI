@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Chat - Gymnasie Edition</title>
+  
+  <!-- External Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <!-- Application CSS -->
+  <link rel="stylesheet" href="static/css/styles.css">
+  
+  <!-- Login Modal Styles -->
+  <style>
+    /* Login Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal-overlay.active {
+      display: flex;
+    }
+    
+    .login-modal {
+      background: var(--card-bg, #1e1e2e);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .login-modal h2 {
+      margin: 0 0 8px 0;
+      color: var(--text-primary, #fff);
+      font-size: 24px;
+      text-align: center;
+    }
+    
+    .login-modal .subtitle {
+      text-align: center;
+      color: var(--text-secondary, #888);
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+    
+    .login-divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      color: var(--text-secondary, #888);
+      font-size: 12px;
+    }
+    
+    .login-divider::before,
+    .login-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .login-divider span {
+      padding: 0 16px;
+    }
+    
+    .login-form .input-group {
+      margin-bottom: 16px;
+    }
+    
+    .login-form label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text-secondary, #888);
+      font-size: 13px;
+    }
+    
+    .login-form input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text-primary, #fff);
+      font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .login-form input:focus {
+      outline: none;
+      border-color: var(--primary, #8b5cf6);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    }
+    
+    .btn-azure {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .btn-azure:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 120, 212, 0.4);
+    }
+    
+    .btn-azure svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .btn-login {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(135deg, var(--primary, #8b5cf6) 0%, #7c3aed 100%);
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .btn-login:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+    }
+    
+    .btn-login:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .login-error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      display: none;
+    }
+    
+    .login-error.show {
+      display: block;
+    }
+    
+    /* User Badge */
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .user-badge:hover {
+      background: rgba(16, 185, 129, 0.15);
+    }
+    
+    .user-badge .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary, #8b5cf6) 0%, #7c3aed 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+    }
+    
+    .user-badge .user-info {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .user-badge .user-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary, #fff);
+    }
+    
+    .user-badge .user-provider {
+      font-size: 11px;
+      color: var(--text-secondary, #888);
+    }
+    
+    .user-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 8px;
+      background: var(--card-bg, #1e1e2e);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px;
+      min-width: 150px;
+      z-index: 100;
+    }
+    
+    .user-menu.show {
+      display: block;
+    }
+    
+    .user-menu button {
+      width: 100%;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-primary, #fff);
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    
+    .user-menu button:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .user-menu button.danger {
+      color: #ef4444;
+    }
+    
+    .user-container {
+      position: relative;
+    }
+    
+    /* Auth Section in Sidebar */
+    .auth-section {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .btn-show-login {
+      width: 100%;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(139, 92, 246, 0.1);
+      color: var(--primary, #8b5cf6);
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .btn-show-login:hover {
+      background: rgba(139, 92, 246, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal-overlay">
+    <div class="login-modal">
+      <h2>🔐 Log ind</h2>
+      <p class="subtitle">Log ind for at bruge AI Chat</p>
+      
+      <!-- Azure AD Button -->
+      <div id="azureLoginSection" style="display: none;">
+        <button id="azureLoginBtn" class="btn-azure">
+          <svg viewBox="0 0 23 23" fill="currentColor">
+            <path d="M1 1h10v10H1V1zm12 0h10v10H13V1zM1 13h10v10H1V13zm12 0h10v10H13V13z"/>
+          </svg>
+          Log ind med Microsoft
+        </button>
+        
+        <div class="login-divider">
+          <span>eller log ind med brugernavn</span>
+        </div>
+      </div>
+      
+      <!-- Local Login Form -->
+      <form id="loginForm" class="login-form">
+        <div id="loginError" class="login-error"></div>
+        
+        <div class="input-group">
+          <label for="loginUsername">Brugernavn</label>
+          <input type="text" id="loginUsername" placeholder="Indtast brugernavn" required />
+        </div>
+        
+        <div class="input-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="Indtast password" required />
+        </div>
+        
+        <button type="submit" id="loginSubmitBtn" class="btn-login">
+          Log ind
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- SIDEBAR -->
+    <aside class="card sidebar">
+      <header class="header">
+        <div class="header-top">
+          <div class="logo">
+            <div class="logo-icon">🤖</div>
+            <div class="logo-text">
+              <h1>AI Chat</h1>
+              <div class="subtitle">Gymnasie Edition v2.3</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Auth Section -->
+        <div id="authSection" class="auth-section">
+          <!-- Shows login button or user info -->
+          <div id="authNotLoggedIn">
+            <button id="showLoginBtn" class="btn-show-login">🔑 Log ind</button>
+          </div>
+          
+          <div id="authLoggedIn" style="display: none;">
+            <div class="user-container">
+              <div id="userBadge" class="user-badge">
+                <div class="avatar" id="userAvatar">?</div>
+                <div class="user-info">
+                  <span class="user-name" id="userName">Bruger</span>
+                  <span class="user-provider" id="userProvider">Lokal</span>
+                </div>
+              </div>
+              <div id="userMenu" class="user-menu">
+                <button id="logoutBtn" class="danger">🚪 Log ud</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="status-badges">
+          <div id="sessionBadge" class="badge">
+            <div class="status-indicator"></div>
+            <span>Ingen session</span>
+          </div>
+          <div id="connectionBadge" class="badge">
+            <div class="status-indicator"></div>
+            <span>Ikke forbundet</span>
+          </div>
+        </div>
+      </header>
+      
+      <div class="sidebar-body">
+        <!-- Configuration Section -->
+        <section class="form-section">
+          <div class="section-title">⚙️ Konfiguration</div>
+          <div class="input-group">
+            <label for="baseUrl">API Base URL</label>
+            <input 
+              type="text" 
+              id="baseUrl" 
+              placeholder="https://api.example.com"
+              value="https://xxxxx.yyyyy.dk"
+              readonly
+              style="opacity: 0.7; cursor: not-allowed;"
+            />
+          </div>
+        </section>
+        
+        <!-- Prompts Section -->
+        <section class="form-section">
+          <div class="section-title">📝 Prompts</div>
+          <div class="input-group">
+            <button id="loadPromptsBtn" class="btn-primary">📥 Hent Prompts</button>
+          </div>
+          
+          <div class="input-group prompt-selector">
+            <label for="promptSelect">Vælg Prompt</label>
+            <select id="promptSelect">
+              <option value="">— Vælg en prompt —</option>
+            </select>
+            <div id="promptInfo" class="prompt-info">
+              <div id="promptInfoText"></div>
+            </div>
+          </div>
+          
+          <div id="promptStatus" class="prompt-status" style="display: none;">
+            ⏳ Klar til at hente prompts
+          </div>
+          
+          <div id="leftError" class="error-message"></div>
+        </section>
+        
+        <!-- Status Section -->
+        <section class="form-section">
+          <div class="section-title">📊 Status</div>
+          <div class="badge" id="promptBadge">📝 Ingen prompt valgt</div>
+          <div class="badge" id="costBadge" style="margin-top: 10px;">💰 Tokens: – | Cost: –</div>
+        </section>
+        
+        <!-- Actions -->
+        <section class="form-section">
+          <div class="section-title">🎯 Handlinger</div>
+          <button id="resetBtn" class="btn-danger">🔄 Nulstil Session</button>
+          <div style="margin-top: 12px;">
+            <button id="clearChatBtn" class="btn-secondary">🗑️ Ryd Chat</button>
+          </div>
+          <div style="margin-top: 12px;">
+            <button id="savePdfBtn" class="btn-primary">📄 Gem som PDF</button>
+          </div>
+        </section>
+      </div>
+    </aside>
+    
+    <!-- CHAT AREA -->
+    <main class="card chat-container">
+      <header class="header">
+        <div class="logo">
+          <div class="logo-text">
+            <h1>💬 Chat Interface</h1>
+            <div class="subtitle">Powered by AI • Real-time responses</div>
+          </div>
+        </div>
+      </header>
+      
+      <div id="chatLog" class="chat-log">
+        <div class="message system">
+          👋 Velkommen! Klik på "Hent Prompts", vælg en prompt og start en samtale.
+        </div>
+      </div>
+      
+      <div class="input-area">
+        <div class="input-wrapper">
+          <textarea 
+            id="messageInput" 
+            placeholder="Skriv din besked her... (Tryk Enter for at sende, Shift+Enter for ny linje)"
+            rows="1"
+          ></textarea>
+          <button id="sendBtn" class="btn-primary">📤 Send</button>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <!-- Application JavaScript -->
+  <script src="static/js/app.js"></script>
+</body>
+</html>

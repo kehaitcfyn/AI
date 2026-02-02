@@ -1,0 +1,40 @@
+# FastAPI
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+python-multipart
+
+# OpenAI
+openai>=1.10.0
+
+# LangChain - RAG
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langchain-chroma>=0.1.0
+
+# Vector database
+chromadb>=0.4.22
+
+# Text processing
+pypdf>=3.17.0
+python-dotenv>=1.0.0
+
+# Rate limiting
+slowapi>=0.1.9
+
+# Retry logic
+tenacity>=8.2.3
+
+# JWT Authentication
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+# Azure AD SSO (HTTP client for token exchange)
+httpx>=0.26.0
+
+# Numpy
+numpy>=1.24.0
+
+# bcrypt
+bcrypt==4.0.1

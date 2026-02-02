@@ -1,6 +1,28 @@
-$login = Invoke-RestMethod -Uri "https://xxxxxxx/api/auth/login" -Method POST -ContentType "application/x-www-form-urlencoded" -Body "username=xxxx&password=xxxxxx"
-$headers = @{ "Authorization" = "Bearer $($login.access_token)" }
-$response = Invoke-RestMethod -Uri "https://xxxxxxx/api/chat" -Method POST -ContentType "application/json" -Headers $headers -Body '{"message":"test","prompt_key":"1"}'
+# Session til cookies
+$session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+
+# Login
+$login = Invoke-RestMethod -Uri "https://chat-assistant.itcfyn.ai/api/auth/login" `
+    -Method POST -ContentType "application/x-www-form-urlencoded" `
+    -Body "username=xxxx&password=xxxxx" `
+    -SessionVariable session
+
+# Hent CSRF token
+$csrfToken = ($session.Cookies.GetCookies("https://chat-assistant.itcfyn.ai") | 
+    Where-Object { $_.Name -eq "csrf_token" }).Value
+
+# Headers med Auth + CSRF
+$headers = @{ 
+    "Authorization" = "Bearer $($login.access_token)"
+    "X-CSRF-Token" = $csrfToken
+}
+
+# Request med session
+$response = Invoke-RestMethod -Uri "https://chat-assistant.itcfyn.ai/api/chat" `
+    -Method POST -ContentType "application/json" `
+    -Headers $headers -WebSession $session `
+    -Body '{"message":"test","prompt_key":"3"}'
+
 $response.sources_metadata
 
 

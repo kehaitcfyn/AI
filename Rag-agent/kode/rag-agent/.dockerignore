@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
+# Data directories (mounted as volumes)
+chroma_collections/
+documents/
+nginx-data/
+nginx-certs/
+nginx-config/
+
+# Logs
+*.log
+
+# Docker
+docker-compose.override.yml
+
+# Scripts (not needed in container)
+_scripts/
+_readme/

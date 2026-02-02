@@ -1,44 +1,57 @@
 #### Køres fra Consol
 
-docker exec "dockernavn" python -c "
+docker exec ai-chat-api python -c "
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 
 db = Chroma(
-    persist_directory='/app/chroma_collections/gdpr_advisor',
+    persist_directory='/app/chroma_collections/it_servicedesk',
     embedding_function=OpenAIEmbeddings(),
-    collection_name='gdpr_advisor'
+    collection_name='it_servicedesk'
 )
-results = db.get(limit=1, include=['metadatas'])
-for key, value in results['metadatas'][0].items():
-    print(f'{key}: {value}')
+
+# Hent ALLE dokumenter
+results = db.get(include=['metadatas', 'documents'])
+
+print(f'Antal dokumenter: {len(results[\"ids\"])}')
+print('=' * 50)
+
+for i, (doc_id, metadata, content) in enumerate(zip(results['ids'], results['metadatas'], results['documents'])):
+    print(f'\n--- Dokument {i+1} ---')
+    print(f'ID: {doc_id}')
+    print('Metadata:')
+    for key, value in metadata.items():
+        print(f'  {key}: {value}')
+    print(f'Content preview: {content[:200]}...' if len(content) > 200 else f'Content: {content}')
 "
 
 
 
-##### Output
+##### For alle 3 collections:
 
-keywords: brud,persondatasikkerheden,tilfælde,notat,dajo
-page: 1
-avg_word_length: 5.966666666666667
-chunk_length: 429
-sourceUrl: https://server.dk/files/Eks. på procedurebeskrivelse for brud på persondatasikkerheden.pdf
-chunk_number: 1
-file_type: pdf
-file_modified_at: 2026-01-21T11:41:52
-has_numbers: True
-file_extension: .pdf
-file_size: 198929
-ingested_at: 2026-01-29T14:16:50.970886
-preview: [Side 1]
-source: Eks. på procedurebeskrivelse for brud på persondatasikkerheden.pdf
-position: start
-is_complete_sentence: False
-chunk_index: 0
-document: Eks. på procedurebeskrivelse for brud på persondatasikkerheden.pdf
-sha256: 33e1f1111cd2296c3920e236d1ceec7f523cd36c2f8c5e7a6bdee83d20b5509d
-collection: gdpr_advisor
-document_id: Eks_ på procedurebeskrivelse for brud på persondatasikkerheden_pdf
-word_count: 60
-total_pages: 12
-total_chunks: 52
+
+docker exec ai-chat-api python -c "
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+
+collections = ['it_servicedesk', 'gdpr_advisor', 'it_support']
+
+for col_name in collections:
+    print(f'\n{\"=\" * 50}')
+    print(f'COLLECTION: {col_name}')
+    print('=' * 50)
+    
+    try:
+        db = Chroma(
+            persist_directory=f'/app/chroma_collections/{col_name}',
+            embedding_function=OpenAIEmbeddings(),
+            collection_name=col_name
+        )
+        results = db.get(include=['metadatas'])
+        print(f'Antal chunks: {len(results[\"ids\"])}')
+        
+        if results['metadatas']:
+            print('Metadata felter:', list(results['metadatas'][0].keys()))
+    except Exception as e:
+        print(f'Fejl: {e}')
+"

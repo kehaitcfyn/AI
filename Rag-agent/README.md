@@ -1,6 +1,5 @@
 # RAG Agent - Dokumentationsoversigt
 
-Mere Info på vej !!!
 
 ## Brug af løsningen er eget ansvar !!
 
@@ -36,10 +35,10 @@ Mere Info på vej !!!
 └── Chat.png                     → Visuelt overblik over design
 
 📁 kode
-├── Kode som er klar til Docker, dog skal mindre ting rettes til inden brug
-
+├── Nginx config
+├── Rag agent klar til Docker, dog skal mindre ting rettes til inden brug
 
 📁 script
-├── script til at teste løsningen
+├── scripts til at teste løsningen
 
 ```

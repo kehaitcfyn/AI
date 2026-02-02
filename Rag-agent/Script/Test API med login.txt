@@ -2,13 +2,13 @@
 $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
 
 # Login
-$login = Invoke-RestMethod -Uri "https://chat-assistant.itcfyn.ai/api/auth/login" `
+$login = Invoke-RestMethod -Uri "https://DinUrl.dk/api/auth/login" `
     -Method POST -ContentType "application/x-www-form-urlencoded" `
     -Body "username=xxxx&password=xxxxx" `
     -SessionVariable session
 
 # Hent CSRF token
-$csrfToken = ($session.Cookies.GetCookies("https://chat-assistant.itcfyn.ai") | 
+$csrfToken = ($session.Cookies.GetCookies("https://DinUrl.dk") | 
     Where-Object { $_.Name -eq "csrf_token" }).Value
 
 # Headers med Auth + CSRF
@@ -18,7 +18,7 @@ $headers = @{
 }
 
 # Request med session
-$response = Invoke-RestMethod -Uri "https://chat-assistant.itcfyn.ai/api/chat" `
+$response = Invoke-RestMethod -Uri "https://DinUrl.dk/api/chat" `
     -Method POST -ContentType "application/json" `
     -Headers $headers -WebSession $session `
     -Body '{"message":"test","prompt_key":"3"}'
